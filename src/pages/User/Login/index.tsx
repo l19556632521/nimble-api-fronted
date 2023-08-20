@@ -12,10 +12,12 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import { history, useModel } from '@umijs/max';
+// const { initialState, setInitialState } = useModel('@@initialState');
 import { Alert, message, Tabs } from 'antd';
 import React, { useRef,useState } from 'react';
 import logo from '../../../../public/icons/program.png';
 import { userLoginUsingPOST,userRegisterUsingPOST } from '@/services/nimble-api-backend/userController';
+import { flushSync } from 'react-dom';
 
 type LoginType = 'account' | 'register' ;
 
@@ -34,10 +36,20 @@ const LoginMessage: React.FC<{
     />
   );
 };
+
 const Login: React.FC = () => {
   const [LoginType, setLoginType] = useState<LoginType>('account');
   const { initialState, setInitialState } = useModel('@@initialState');
   const formRef = useRef<ProFormInstance>();
+
+  const fetchUserInfo =  (userInfo: API.UserVO) => {
+    if (userInfo) {
+      flushSync(() => {
+        //设置用户登录信息到全局对象中去
+        setInitialState({loginUser: userInfo});
+      });
+    }
+  };
 
   const handleSubmit = async (values: API.UserRegisterRequest) => {
     const {userPassword, checkPassword} = values;
@@ -59,26 +71,47 @@ const Login: React.FC = () => {
         }
 
     } else {
-        // 登录
-        const res = await userLoginUsingPOST({
-            ...values,
-        });
-        if (res.data) {
-            const defaultLoginSuccessMessage = '登录成功！';
-            message.success(defaultLoginSuccessMessage);
-            // 登录成功后处理
-            const urlParams = new URL(window.location.href).searchParams;
-            // 重定向到 redirect 参数所在的位置
-            location.href = urlParams.get('redirect') || '/';
-            // 保存登录状态
-            setInitialState({
-                loginUser: res.data,
+        try{
+            // 登录
+            const res = await userLoginUsingPOST({
+                ...values,
             });
-        } else {
-            message.error(res.message);
+            // 如果登录成功（响应有数据）
+            if (res.data) {
+                // 获取当前URL的查询参数
+                const urlParams = new URL(window.location.href).searchParams;
+                
+                fetchUserInfo(res.data);
+                // 设置一个延迟100毫秒的定时器
+                // 定时器触发后，导航到重定向URL，如果没有重定向URL，则导航到根路径
+                history.push(urlParams.get('redirect') || '/');
+                // setTimeout(() => {
+                //     history.push(urlParams.get('redirect') || '/');
+                //     // 重定向到 redirect 参数所在的位置
+                //     // location.href = urlParams.get('redirect') || '/';
+                // }, 100);
+                //更新全局状态，设置登录用户的信息
+                // setInitialState({
+                //     loginUser: res.data
+                // });
+                console.log('url=' + urlParams);
+                console.log('url=' + urlParams.get('redirect'));
+                console.log('登录成功 loginuser=', res.data);
+                return;
+            }
+            // 如果抛出异常
+            } catch (error) {
+            // 定义默认的登录失败消息
+            const defaultLoginFailureMessage = '登录失败，请重试！';
+            // 在控制台打印出错误
+            console.log(error);
+            // 使用 message 组件显示错误信息
+            message.error(defaultLoginFailureMessage);
+            }
         }
     }
-};
+// };
+
 return (
   <div>
       <div
@@ -216,3 +249,5 @@ return (
 );
 };
 export default Login;
+
+

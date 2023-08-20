@@ -16,7 +16,11 @@ interface ResponseStructure {
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const requestConfig: RequestConfig = {
+  //上线配置
+  // baseURL: 'http://124.220.222.98:8101',
   baseURL: 'http://localhost:8101',
+  
+  //保存到全局变量并初始化，防止用户刷新页面后返回登录页面（请求参数需要携带cookie否则没有作用）
   withCredentials: true,
   // 请求拦截器
   requestInterceptors: [
@@ -26,6 +30,7 @@ export const requestConfig: RequestConfig = {
       return { ...config, url };
     },
   ],
+
   // 响应拦截器
   responseInterceptors: [
     (response) => {
@@ -39,4 +44,7 @@ export const requestConfig: RequestConfig = {
       return response;
     },
   ],
+  exportStatic: {},
 };
+
+

@@ -257,7 +257,7 @@ const TableList: React.FC = () => {
       fixed: 'right',
       render: (_, record) => [
         <a
-          key="config"
+          key="update"
           onClick={() => {
             handleUpdateModalVisible(true);
             setCurrentRow(record);
@@ -267,7 +267,7 @@ const TableList: React.FC = () => {
         </a>,
         record.status === 0 ? <Button
           type="link"
-          key="config"
+          key="publish"
           onClick={() => {
             handleOnline(record);
           }}
@@ -276,7 +276,7 @@ const TableList: React.FC = () => {
         </Button> : <Button
           type="text"
           danger
-          key="config"
+          key="offline"
           onClick={() => {
             handleOffline(record);
           }}
@@ -286,7 +286,7 @@ const TableList: React.FC = () => {
         <Button
           type="text"
           danger
-          key="config"
+          key="remove"
           onClick={() => {
             handleRemove(record);
           }}
@@ -302,7 +302,8 @@ const TableList: React.FC = () => {
       <ProTable<API.RuleListItem, API.PageParams>
         headerTitle={'查询表格'}
         actionRef={actionRef}
-        rowKey="key"
+        //多选框选择的依据，每一行要唯一
+        rowKey="id"
         search={{
           labelWidth: 120,
         }}
@@ -356,9 +357,6 @@ const TableList: React.FC = () => {
                 {selectedRowsState.length}
               </a>{' '}
               项 &nbsp;&nbsp;
-              <span>
-          服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-          </span>
             </div>
           }
         >
@@ -369,9 +367,9 @@ const TableList: React.FC = () => {
               actionRef.current?.reloadAndRest?.();
             }}
           >
-            批量删除
+            批量下线
           </Button>
-          <Button type="primary">批量审批</Button>
+          <Button type="primary">批量删除</Button>
         </FooterToolbar>
       )}
 
