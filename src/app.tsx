@@ -2,14 +2,13 @@ import Footer from '@/components/Footer';
 import { Question, SelectLang } from '@/components/RightContent';
 import { getLoginUserUsingGET } from '@/services/nimble-api-backend/userController';
 import { LinkOutlined } from '@ant-design/icons';
-import { SettingDrawer } from '@ant-design/pro-components';
-import type { Settings as LayoutSettings } from '@ant-design/pro-components';
+import { SettingDrawer, type Settings as LayoutSettings } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
-import { Alert, message, Tabs } from 'antd';
-import defaultSettings from '../src/defaultSettings';
 import { AvatarDropdown, AvatarName } from './components/RightContent/AvatarDropdown';
 import { requestConfig } from './requestConfig';
+import Settings from '../src/defaultSettings';
+import { message } from 'antd';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -17,57 +16,51 @@ const loginPath = '/user/login';
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
  * */
-// export async function getInitialState(): Promise<InitialState> {
-//     // 当页面首次加载时，获取要全局保存的数据，比如用户登录信息
-//       const state: InitialState = {
-//         // 初始化登录用户的状态，初始值设为undefined
-//         loginUser: undefined,
-//         settings: undefined,
-//       }
-//       try {
-//         // 调用getLoginUserUsingGET()函数，尝试获取当前已经登录的用户信息
-//         const res = await getLoginUserUsingGET();
-//         // 如果从后端获取的数据不为空，就把获取到的用户数据赋值给state.loginUser
-//         if (res.data) {
-//           state.loginUser = res.data;
-//           state.settings = defaultSettings as Partial<LayoutSettings>;
-//         }
-//         console.log('res.data=' + res.data);
-//       // 如果在获取用户信息的过程中发生错误，就把页面重定向到登录页面
-//       } catch (error) {
-//         message.error(error);
-//         history.push(loginPath);
-//       }
-//       // 返回修改后的状态
-//       console.log('state=' + state);
-//       return state;
-//     };
-
 export async function getInitialState(): Promise<InitialState> {
-    const fetchUserInfo = async () => {
-        try {
-            const res = await getLoginUserUsingGET();
-            return res.data;
-        } catch (error) {
-            history.push(loginPath);
-        }
-        return undefined;
+    //页面首次加载，获取全局信息，比如用户登录态
+    const state: InitialState = {
+      loginUser: undefined,
     };
-    // 如果不是登录页面，执行
-    const { location } = history;
-    if (location.pathname !== loginPath) {
-        const loginUser = await getLoginUserUsingGET();
-        return {
-            fetchUserInfo,
-            loginUser: loginUser.data,
-            settings: defaultSettings as Partial<LayoutSettings>,
-        };
+    try {
+      const res = await getLoginUserUsingGET();
+      if (res.data) {
+        state.loginUser = res.data;
+      }
+    } catch (error) {
+      message.error(error);
+      history.push(loginPath);
     }
-    return {
-        fetchUserInfo,
-        settings: defaultSettings as Partial<LayoutSettings>,
-    };
+    return state;
 }
+
+
+// export async function getInitialState(): Promise<InitialState> {
+//     const fetchUserInfo = async () => {
+//         try {
+//             const res = await getLoginUserUsingGET();
+//             return res.data;
+//         } catch (error) {
+//             history.push(loginPath);
+//         }
+//         return undefined;
+//     };
+//     // 如果不是登录页面，执行
+//     const { location } = history;
+//     if (location.pathname !== loginPath) {
+//         const loginUser = await getLoginUserUsingGET();
+//         return {
+//             fetchUserInfo,
+//             loginUser: loginUser.data,
+//             settings: defaultSettings as Partial<LayoutSettings>,
+//         };
+//     }
+//     return {
+//         settings: defaultSettings as Partial<LayoutSettings>,
+//         fetchUserInfo,
+        
+//     };
+// }
+
 
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
@@ -123,25 +116,27 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         // 自定义 403 页面
         // unAccessible: <div>unAccessible</div>,
         // 增加一个 loading 的状态
-        childrenRender: (children) => {
+        childrenRender: (children, props) => {
             // if (initialState?.loading) return <PageLoading />;
             return (
-                <>
-                    {children}
-                    {/*<SettingDrawer*/}
-                    {/*    disableUrlParams*/}
-                    {/*    enableDarkTheme*/}
-                    {/*    settings={initialState?.settings}*/}
-                    {/*    onSettingChange={(settings) => {*/}
-                    {/*        setInitialState((preInitialState) => ({*/}
-                    {/*            ...preInitialState,*/}
-                    {/*            settings,*/}
-                    {/*        }));*/}
-                    {/*    }}*/}
-                    {/*/>*/}
-                </>
+              <>
+                {children}
+                {!props.location?.pathname?.includes('/login') && (
+                  <SettingDrawer
+                    disableUrlParams
+                    enableDarkTheme
+                    settings={Settings}
+                    onSettingChange={(settings) => {
+                      setInitialState((preInitialState) => ({
+                        ...preInitialState,
+                        settings,
+                      }));
+                    }}
+                  />
+                )}
+              </>
             );
-        },
+          },
           ...initialState?.settings,
         };
 };

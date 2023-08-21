@@ -29,6 +29,13 @@ const Footer: React.FC = () => {
           href: 'http://localhost:8000/umi/plugin/openapi',
           blankTarget: true,
         },
+        // 添加备案信息链接
+        {
+          key: '备案信息',
+          title: '皖ICP备2023009937号-1',
+          href: 'https://beian.miit.gov.cn/',
+          blankTarget: true,
+        },
       ]}
     />
   );
