@@ -2,6 +2,7 @@
 import type { RequestConfig } from '@umijs/max';
 import { message } from 'antd';
 
+const isDev = process.env.NODE_ENV === 'development';
 // 与后端约定的响应数据格式
 interface ResponseStructure {
   success: boolean;
@@ -16,10 +17,9 @@ interface ResponseStructure {
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const requestConfig: RequestConfig = {
-  //上线配置
-  // baseURL: 'http://124.220.222.98:8101',
-  baseURL: 'http://localhost:8101',
-  
+  //上线配置，前端axios请求地址是什么，在登录时请求的Host就是啥
+  baseURL: isDev ? 'http://localhost:8101/api' : 'http://124.220.222.98:8101',
+
   //保存到全局变量并初始化，防止用户刷新页面后返回登录页面（请求参数需要携带cookie否则没有作用）
   withCredentials: true,
   // 请求拦截器
@@ -37,6 +37,7 @@ export const requestConfig: RequestConfig = {
       // 拦截响应数据，进行个性化处理
       const { data } = response as unknown as ResponseStructure;
       console.log('data', data);
+      console.info('isDev:' + isDev);
       if (data.code !== 0) {
         // throw new Error(data.message);
         message.error(data.message);
